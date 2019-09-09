@@ -1,0 +1,19 @@
+#Creating Visualizations for Research Trends, number of articles published per year
+
+library(ggplot2)
+library(psych)
+library(tidyr)
+library(dplyr)
+
+raw_data <- read.clipboard.tab()
+
+df <- raw_data %>% select(Year, tDCS, rTMS, ECT) %>% gather(key="Modality", value = "Number", -Year)
+
+head(df)
+
+#Only tDCS Data
+ggplot(raw_data, aes(Year, tDCS)) +  geom_segment(aes(xend = Year, yend = 0), size=1, color='darkgrey') + geom_point(size=3, color='firebrick') + theme_minimal() + scale_x_continuous(breaks = c(2000,2005,2010,2015,2017,2019)) + ylab("Number of 'tDCS' Entries in Google Scholar")
+
+
+#Comparing all 3 NIBS Modalities
+ggplot(df, aes(x = Year, y = Number)) + geom_point(aes(color = Modality), size = 1) + geom_line(aes(color = Modality), size=0.5) + theme_minimal() + scale_x_continuous(breaks = c(2000,2005,2010,2012,2015,2017,2019)) + ylab("Number of Entries in Google Scholar") + scale_color_manual(values = c("lightgreen", "lightblue", "firebrick" )) + theme(legend.position="top")
