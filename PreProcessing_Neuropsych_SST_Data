@@ -1,0 +1,57 @@
+library(psych)
+library(dplyr)
+
+#INPUT THE NEUROPSYCH DATA
+
+raw_neuropsy <- read.clipboard.tab()
+
+#INPUT the SST Data & take the first column as the Subj ID
+
+raw_SST <- read.clipboard.tab()
+
+
+attach(raw_neuropsy)
+
+#Making Vectors of Required Variables
+ID <- ADBS_ID
+
+#Effective Time Per Circle for Color Trails
+ETC1 <- (CT1_TIME/CT1_TotalCompleted) + (CT1_ERROR/25)
+ETC2 <- (CT2_TIME/CT2_TotalCompleted) + (CT2_ERROR/50)
+
+#AVLT Total & Immediate Recall
+AVLT_TOTAL <- AVLT_TRIAL1+AVLT_TRIAL2+AVLT_TRIAL3+AVLT_TRIAL4+AVLT_TRIAL5
+AVLT_IR <- AVLT_IR
+
+#NB1 & NB2 Sensitivity Indexes
+NB1_HR <- (NB1_HITS/9) 
+adjNB1_HR <- replace(NB1_HR, NB1_HR==1, 0.94444)
+NB1_FA <- (NB1_COMMISSIONS/21)
+adjNB1_FA <- replace(NB1_FA, NB1_FA==0, (1/42))
+NB2_HR <- (NB2_HITS/9) 
+adjNB2_HR <- replace(NB2_HR, NB2_HR==1, 0.94444)
+NB2_FA <- (NB2_COMMISSIONS/21)
+adjNB2_FA <- replace(NB2_FA, NB2_FA==0, (1/42))
+
+d_NB1 <- qnorm(adjNB1_HR) - qnorm(adjNB1_FA)
+d_NB2 <- qnorm(adjNB2_HR) - qnorm(adjNB2_FA)
+
+rm(NB1_HR, adjNB1_HR,NB1_FA, adjNB1_FA, NB2_HR, adjNB2_HR, NB2_FA, adjNB2_FA)
+
+#Social Cognition Rating Scale
+
+TDV_2.1 <-  ((Soc.2.1_M + Soc.2.1_R)/2) - Soc.2.1_TOM
+TDV_2.2 <-  ((Soc.2.2_M + Soc.2.2_R)/2) - Soc.2.2_TOM
+
+SOT <- ((1-TDV_2.1) +  (1-TDV_2.2) + MI.one.IRONY + MI.two._IRONY)/4
+rm(TDV_2.1, TDV_2.2)
+
+detach(raw_neuropsy)
+
+ripe_neuropsych <- cbind.data.frame(ID, ETC1, ETC2, d_NB1, d_NB2, AVLT_IR, AVLT_TOTAL, SOT)
+
+#Merge the Neuropsych & SST Data Frames
+
+final_data <- merge(ripe_neuropsych, raw_SST[,c(1, 9:18)], by.x = "ID", by.y = "SubjID")
+
+write.csv(final_data, " neuropsychSSTcombined.csv")
