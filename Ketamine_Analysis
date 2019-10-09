@@ -1,0 +1,16 @@
+#Longitudinally Arranged Data Frame
+data_friedman <- read.clipboard.tab()  
+
+#Removing VKB, who was a outlier in terms of response
+without_VKB <- data_friedman[-c(4,18,32),]
+
+#Conducting Friedman Test (non-parametric equivalent of the rmANOVA
+friedman.test(YBOCS ~ Time | ID, data = data_friedman)
+friedman.test(YBOCS ~ Time | ID, data = without_VKB)
+
+#Drawing Point-Line Plot for the YBOCS Score
+ggplot(data_friedman,aes(x=Time,y=YBOCS)) + geom_point(color = data_friedman$ID, shape = data_friedman$ID, position=position_jitter(h=0.1, w=0.02)) + geom_line(group =data_friedman$ID, color = data_friedman$ID) + ylab("YBOCS Total Score") + xlab("Time at Assessment")
+
+#Drawing Point-Line Plot for the HAMD Score
+ggplot(data_hamd1,aes(x=Time,y=HAMD)) + geom_point(color = data_hamd1$ID, shape = data_hamd1$ID) + geom_line(group =data_hamd1$ID, color = data_hamd1$ID) + ylab("HAMD Total") + xlab("Time at Assessment") + scale_y_continuous(limits = c(0,30))
+
