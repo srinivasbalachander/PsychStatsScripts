@@ -1,0 +1,11 @@
+set.seed()
+
+setwd("/Users/balachandersrinivas/Desktop")
+
+subject.id <- c(10001:10040)
+group <- sample(c("Sham - Active", "Active - Sham"), 40, replace = TRUE, prob = c(0.5, 0.5)) 
+randomization <- as.data.frame(cbind(subject.id, group))
+summary(randomization$group)
+write.csv(randomization, "randomization.csv")
+  
+
