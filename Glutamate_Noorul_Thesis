@@ -1,0 +1,181 @@
+library(psych)
+library(tidyverse)
+
+glutamate <- read.clipboard.tab()
+
+memantine <- glutamate[glutamate$Group == "Memantine", ]
+NAC <- glutamate[glutamate$Group == "N-Acetyl Cysteine", ]
+mem_NAC <- rbind(memantine, NAC)
+mem_NAC$Group <- factor(mem_NAC$Group, levels = c("Memantine", "N-Acetyl Cysteine"))
+
+summary(mem_NAC$Group)                        
+
+
+attach(mem_NAC)
+
+rbind(				
+  cbind(tapply(Age,Group, mean, na.rm=TRUE)	,	tapply(Age,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(Education_yrs,Group, mean, na.rm=TRUE)	,	tapply(Education_yrs,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(AAO,Group, mean, na.rm=TRUE)	,	tapply(AAO,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(Age_at_treatment,Group, mean, na.rm=TRUE)	,	tapply(Age_at_treatment,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(DOI,Group, mean, na.rm=TRUE)	,	tapply(DOI,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(NooffailedSRIs,Group, mean, na.rm=TRUE)	,	tapply(NooffailedSRIs,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(TOTAUGTRIALS,Group, mean, na.rm=TRUE)	,	tapply(TOTAUGTRIALS,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(YBOCSObsBSL,Group, mean, na.rm=TRUE)	,	tapply(YBOCSObsBSL,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(YBOCSComBSL,Group, mean, na.rm=TRUE)	,	tapply(YBOCSComBSL,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(YBOCSTOTBSL,Group, mean, na.rm=TRUE)	,	tapply(YBOCSTOTBSL,Group, sd, na.rm=TRUE)	),
+  cbind(tapply(DoseogGluAgent,Group, mean, na.rm=TRUE)	,	tapply(DoseogGluAgent,Group, sd, na.rm=TRUE)	))
+
+
+desc_cont <- cbind(rbind(tapply(Age,Group, mean, na.rm=TRUE),
+            tapply(Education_yrs,Group, mean, na.rm=TRUE),
+            tapply(AAO,Group, mean, na.rm=TRUE),
+            tapply(Age_at_treatment,Group, mean, na.rm=TRUE),
+            tapply(DOI,Group, mean, na.rm=TRUE)	,
+            tapply(NooffailedSRIs,Group, mean, na.rm=TRUE)	,
+            tapply(TOTAUGTRIALS,Group, mean, na.rm=TRUE)	,
+            tapply(YBOCSObsBSL,Group, mean, na.rm=TRUE)	,
+            tapply(YBOCSComBSL,Group, mean, na.rm=TRUE)	,
+            tapply(YBOCSTOTBSL,Group, mean, na.rm=TRUE)	,
+            tapply(DoseogGluAgent,Group, mean, na.rm=TRUE),
+            tapply(Time_To_DISC, Group, mean, na.rm = TRUE)), 
+rbind(tapply(Age,Group, sd, na.rm=TRUE),
+      tapply(Education_yrs,Group, sd, na.rm=TRUE),
+      tapply(AAO,Group, sd, na.rm=TRUE),
+      tapply(Age_at_treatment,Group, sd, na.rm=TRUE),
+      tapply(DOI,Group, sd, na.rm=TRUE),
+      tapply(NooffailedSRIs,Group, sd, na.rm=TRUE),
+      tapply(TOTAUGTRIALS,Group, sd, na.rm=TRUE),
+      tapply(YBOCSObsBSL,Group, sd, na.rm=TRUE),
+      tapply(YBOCSComBSL,Group, sd, na.rm=TRUE),
+      tapply(YBOCSTOTBSL,Group, sd, na.rm=TRUE),
+      tapply(DoseogGluAgent,Group, sd, na.rm=TRUE),
+      tapply(Time_To_DISC, Group, sd, na.rm = TRUE)))
+
+rownames(desc_cont) <- c("Age",
+                         "Education_yrs",
+                         "AAO",
+                         "Age_at_treatment",
+                         "DOI",
+                         "NooffailedSRIs",
+                         "TOTAUGTRIALS",
+                         "YBOCSObsBSL",
+                         "YBOCSComBSL",
+                         "YBOCSTOTBSL",
+                         "DoseogGluAgent",
+                         "Time_to_Disc")
+
+colnames(desc_cont) <- c("Mem_Mean", "NAC_Mean", "Mem_SD", "NAC_SD")
+desc_cont
+
+cbind(table(Sex,Group), prop.table(table(Sex,Group), margin = 2)*100)
+cbind(table(Education,Group), prop.table(table(Education,Group), margin = 2)*100)
+cbind(table(Occupation,Group), prop.table(table(Occupation,Group), margin = 2)*100)
+cbind(table(Religion,Group), prop.table(table(Religion,Group), margin = 2)*100)
+cbind(table(Domicile,Group), prop.table(table(Domicile,Group), margin = 2)*100)
+cbind(table(Contam_Obs,Group), prop.table(table(Contam_Obs,Group), margin = 2)*100)
+cbind(table(Somatic_Obs,Group), prop.table(table(Somatic_Obs,Group), margin = 2)*100)
+cbind(table(Aggr_Obs,Group), prop.table(table(Aggr_Obs,Group), margin = 2)*100)
+cbind(table(Sexual_Obs,Group), prop.table(table(Sexual_Obs,Group), margin = 2)*100)
+cbind(table(Relig_Obs,Group), prop.table(table(Relig_Obs,Group), margin = 2)*100)
+cbind(table(Hoard_Obs,Group), prop.table(table(Hoard_Obs,Group), margin = 2)*100)
+cbind(table(PathDbt_Obs,Group), prop.table(table(PathDbt_Obs,Group), margin = 2)*100)
+cbind(table(Symm_Obs,Group), prop.table(table(Symm_Obs,Group), margin = 2)*100)
+cbind(table(Misc_Obs1,Group), prop.table(table(Misc_Obs1,Group), margin = 2)*100)
+cbind(table(Misc_Obs2,Group), prop.table(table(Misc_Obs2,Group), margin = 2)*100)
+cbind(table(Misc_Obs3,Group), prop.table(table(Misc_Obs3,Group), margin = 2)*100)
+cbind(table(Princ_Obs,Group), prop.table(table(Princ_Obs,Group), margin = 2)*100)
+cbind(table(Wash_Comp,Group), prop.table(table(Wash_Comp,Group), margin = 2)*100)
+cbind(table(Check_Comp,Group), prop.table(table(Check_Comp,Group), margin = 2)*100)
+cbind(table(Rept_Comp,Group), prop.table(table(Rept_Comp,Group), margin = 2)*100)
+cbind(table(Count_Comp,Group), prop.table(table(Count_Comp,Group), margin = 2)*100)
+cbind(table(Arran_Comp,Group), prop.table(table(Arran_Comp,Group), margin = 2)*100)
+cbind(table(Collec_Comp,Group), prop.table(table(Collec_Comp,Group), margin = 2)*100)
+cbind(table(Misc_Comp1,Group), prop.table(table(Misc_Comp1,Group), margin = 2)*100)
+cbind(table(Misc_Comp2,Group), prop.table(table(Misc_Comp2,Group), margin = 2)*100)
+cbind(table(Misc_Comp3,Group), prop.table(table(Misc_Comp3,Group), margin = 2)*100)
+cbind(table(Princ_Comp,Group), prop.table(table(Princ_Comp,Group), margin = 2)*100)
+cbind(table(FH_OCD,Group), prop.table(table(FH_OCD,Group), margin = 2)*100)
+cbind(table(FH_ANX,Group), prop.table(table(FH_ANX,Group), margin = 2)*100)
+cbind(table(FH_Tics,Group), prop.table(table(FH_Tics,Group), margin = 2)*100)
+cbind(table(FH_Psychosis,Group), prop.table(table(FH_Psychosis,Group), margin = 2)*100)
+cbind(table(FH_BPAD,Group), prop.table(table(FH_BPAD,Group), margin = 2)*100)
+cbind(table(FH_Depressoin,Group), prop.table(table(FH_Depressoin,Group), margin = 2)*100)
+cbind(table(DepressionComorbid,Group), prop.table(table(DepressionComorbid,Group), margin = 2)*100)
+cbind(table(DysthymiaComorbid,Group), prop.table(table(DysthymiaComorbid,Group), margin = 2)*100)
+cbind(table(Suicidality,Group), prop.table(table(Suicidality,Group), margin = 2)*100)
+cbind(table(BPADComorbid,Group), prop.table(table(BPADComorbid,Group), margin = 2)*100)
+cbind(table(PsychosisComorbid,Group), prop.table(table(PsychosisComorbid,Group), margin = 2)*100)
+cbind(table(GADComorbid,Group), prop.table(table(GADComorbid,Group), margin = 2)*100)
+cbind(table(SADComorbid,Group), prop.table(table(SADComorbid,Group), margin = 2)*100)
+cbind(table(PanicComorbid,Group), prop.table(table(PanicComorbid,Group), margin = 2)*100)
+cbind(table(SpecifcPhobiaComorbid,Group), prop.table(table(SpecifcPhobiaComorbid,Group), margin = 2)*100)
+cbind(table(TicsComorbid,Group), prop.table(table(TicsComorbid,Group), margin = 2)*100)
+cbind(table(OCSpectrum_Others,Group), prop.table(table(OCSpectrum_Others,Group), margin = 2)*100)
+cbind(table(Addiction,Group), prop.table(table(Addiction,Group), margin = 2)*100)
+cbind(table(OtherComorbidPsych,Group), prop.table(table(OtherComorbidPsych,Group), margin = 2)*100)
+cbind(table(Physical_Comorbidities,Group), prop.table(table(Physical_Comorbidities,Group), margin = 2)*100)
+cbind(table(Clinical_PD,Group), prop.table(table(Clinical_PD,Group), margin = 2)*100)
+cbind(table(PD_Present,Group), prop.table(table(PD_Present,Group), margin = 2)*100)
+cbind(table(Fluoxetine,Group), prop.table(table(Fluoxetine,Group), margin = 2)*100)
+cbind(table(Sertraline,Group), prop.table(table(Sertraline,Group), margin = 2)*100)
+cbind(table(Paroxetine,Group), prop.table(table(Paroxetine,Group), margin = 2)*100)
+cbind(table(Escitalopram,Group), prop.table(table(Escitalopram,Group), margin = 2)*100)
+cbind(table(Venlafaxine,Group), prop.table(table(Venlafaxine,Group), margin = 2)*100)
+cbind(table(Fluvoxamine,Group), prop.table(table(Fluvoxamine,Group), margin = 2)*100)
+cbind(table(Clomipramine,Group), prop.table(table(Clomipramine,Group), margin = 2)*100)
+
+
+YBOCS_table <- cbind(rbind(tapply(YBOCSObsBSL, Group, mean, na.rm=TRUE),
+                           tapply(YBOCSComBSL, Group, mean, na.rm=TRUE),
+                           tapply(YBOCSTOTBSL, Group, mean, na.rm=TRUE),
+                           tapply(YBOCSO2MNTH, Group, mean, na.rm=TRUE),
+                           tapply(YBOCSC2MNTH, Group, mean, na.rm=TRUE),
+                           tapply(YBOCSTOT2MNTH, Group, mean, na.rm=TRUE),
+                           tapply(YBOCSO4MNTH, Group, mean, na.rm=TRUE),
+                           tapply(YBOCSC4MNTH, Group, mean, na.rm=TRUE),
+                           tapply(YBOCSTOT4MNTH, Group, mean, na.rm=TRUE)),
+    rbind(tapply(YBOCSObsBSL, Group, sd, na.rm=TRUE),
+          tapply(YBOCSComBSL, Group, sd, na.rm=TRUE),
+          tapply(YBOCSTOTBSL, Group, sd, na.rm=TRUE),
+          tapply(YBOCSO2MNTH, Group, sd, na.rm=TRUE),
+          tapply(YBOCSC2MNTH, Group, sd, na.rm=TRUE),
+          tapply(YBOCSTOT2MNTH, Group, sd, na.rm=TRUE),
+          tapply(YBOCSO4MNTH, Group, sd, na.rm=TRUE),
+          tapply(YBOCSC4MNTH, Group, sd, na.rm=TRUE),
+          tapply(YBOCSTOT4MNTH, Group, sd, na.rm=TRUE)))
+
+rownames(YBOCS_table) <- c("Baseline Obs", "Baseline Comp", "Baseline Tot", "2Month Obs", "2Month Comp", "2Month Tot", "4 month Obs", "4Month  Comp", "4 Month Tot")
+colnames(YBOCS_table) <- c("Mem_Mean", "NAC_Mean","Mem_sd", "NAC_sd")
+
+YBOCS_table
+ 
+t.test(memantine$YBOCSTOTBSL, memantine$YBOCSTOT2MNTH, paired = TRUE)
+t.test(memantine$YBOCSTOTBSL, memantine$YBOCSTOT4MNTH, paired = TRUE)
+
+t.test(NAC$YBOCSTOTBSL, NAC$YBOCSTOT2MNTH, paired = TRUE)
+t.test(NAC$YBOCSTOTBSL, NAC$YBOCSTOT4MNTH, paired = TRUE)
+
+
+## Effect size  of Memantine at 2 months = 0.441811
+## Effect size of NAC at 2 months = 0.125
+
+
+
+##--------------------------------------STATS IN LONG FORM--------------##
+
+long_form <- read.clipboard.tab()
+
+mem_long <- long_form[long_form$GROUP == "Memantine", ]
+NAC_long <- long_form[long_form$GROUP == "N-Acetyl Cysteine", ]
+
+mem_long$TIME <- factor(mem_long$TIME, levels = c("BSL", "2MONTH", "4MONTH"), ordered = TRUE)
+NAC_long$TIME <- factor(NAC_long$TIME, levels = c("BSL", "2MONTH", "4MONTH"), ordered = TRUE)
+
+boxplot(mem_long$YBOCS_TOT ~ mem_long$TIME)
+boxplot(NAC_long$YBOCS_TOT ~  NAC_long$TIME)
+
+ggplot(data=mem_long, mapping=aes(x=mem_long$TIME, y=mem_long$YBOCS_TOT)) + geom_boxplot() + geom_jitter()
+ggplot(data=NAC_long, mapping=aes(x=NAC_long$TIME, y=NAC_long$YBOCS_TOT)) + geom_boxplot() + geom_jitter()
+
+
