@@ -1,0 +1,18 @@
+library(ggplot2)
+
+
+#Inputting the LCGA data, in long format
+
+Class <- c("LC1",	"LC1",	"LC1",	"LC1",	"LC1",	"LC1",	"LC2",	"LC2",	"LC2",	"LC2",	"LC2",	"LC2",	"LC3",	"LC3",	"LC3",	"LC3",	"LC3",	"LC3",	"LC4",	"LC4",	"LC4",	"LC4",	"LC4",	"LC4")
+Month	<- c(0,	1.5,	4.5,	7.5,	13.5,	25.5,	0,	1.5,	4.5,	7.5,	13.5,	25.5,	0,	1.5,	4.5,	7.5,	13.5,	25.5,	0,	1.5,	4.5,	7.5,	13.5,	25.5)
+YBOCS	<- c(29.293,	27.734,	25.06,	22.978,	20.59,	22.918,	32.103,	31.551,	30.681,	30.123,	29.943,	33.327,	25.483,	20.382,	11.59,	4.678,	0,	2.686,	25.996,	23.02,	17.89,	13.856,	9.076,	12.668)
+
+LCG_Plot <- cbind(Class, Month, YBOCS)
+
+#Making the GGPlot
+ggplot(data = LCG_Plot, aes(x=LCG_Plot$Month, y=LCG_Plot$YBOCS)) + 
+  geom_point(mapping = aes(group = LCG_Plot$Class, shape= LCG_Plot$Class), size=3) + 
+  geom_line(mapping= aes(x= LCG_Plot$Month, y= LCG_Plot$YBOCS, group=LCG_Plot$Class)) + 
+  scale_x_continuous(name= "Time of Assessment", breaks = c(0, 1.5, 4.5, 7.5, 13.5, 25.5), labels = c("Admission", "Discharge", "3 Months", "6 Months", "12 Months", "24 Months")) + 
+  scale_y_continuous(name="YBOCS Total Score", breaks = seq(0,40,5)) + theme( legend.position = c(0.75, 0.8)) + 
+  scale_shape_discrete(name  ="Latent Classes", breaks=c("LC2", "LC1", "LC4", "LC3"), labels=c("LC Non-Responders (14.6%)", "LC 'Minimal' Responders (34.7%)", "LC Responders (36.3%)", "LC Remitters (14.5%)"))
