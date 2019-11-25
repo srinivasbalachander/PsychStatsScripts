@@ -1,0 +1,48 @@
+library("psych")
+library("survival")
+library("survminer")
+
+#------Input the Data on FamNo, Type of Relation, Age and Age at Onset from the Familiality Sheet------
+
+aao_ocd <- read.clipboard.tab()
+aao_ocd$Sex <- factor(aao_ocd$Sex)
+aao_ocd$Type.of.Relation <- factor(aao_ocd$Type.of.Relation)
+
+#----- Subsetting into Index-Parent & Index-Sibling Pairs
+parents_only <- aao_ocd[aao_ocd$Type.of.Relation == "parent",]
+siblings_only <- aao_ocd[aao_ocd$Type.of.Relation == "sibling",]
+index_only <- aao_ocd[aao_ocd$Type.of.Relation == "index", ]
+
+index_parent <- rbind(parents_only,index_only[index_only$DUMMY_FAMNO %in% parents_only$DUMMY_FAMNO, ])
+
+index_sibling <- rbind(siblings_only, index_only[index_only$DUMMY_FAMNO %in% siblings_only$DUMMY_FAMNO, ])
+
+rm(parents_only, siblings_only, index_only)
+
+fit_parentchild <- survfit(Surv(AAO) ~ Type.of.Relation, data = index_parent)
+print(fit)
+
+ggsurvplot(fit_parentchild,
+           pval = TRUE, conf.int = TRUE,
+           risk.table = TRUE, # Add risk table
+           risk.table.col = "strata", # Change risk table color by groups
+           linetype = "strata", # Change line type by groups
+           surv.median.line = "hv", # Specify median survival
+           ggtheme = theme_bw(), # Change ggplot2 theme
+           palette = c("#E7B800", "#2E9FDF"),
+           xlab = "Age at Onset of OCD",
+           fun= "event")
+
+fit_siblings <- survfit(Surv(AAO) ~ Type.of.Relation, data = index_sibling)
+
+ggsurvplot(fit_siblings,
+           pval = TRUE, conf.int = TRUE,
+           risk.table = TRUE, # Add risk table
+           risk.table.col = "strata", # Change risk table color by groups
+           linetype = "strata", # Change line type by groups
+           surv.median.line = "hv", # Specify median survival
+           ggtheme = theme_bw(), # Change ggplot2 theme
+           palette = c("#E7B800", "#2E9FDF"),
+           xlab = "Age at Onset of OCD",
+           fun="event")
+
