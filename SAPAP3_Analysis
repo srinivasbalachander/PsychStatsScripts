@@ -23,7 +23,7 @@ factor.analysis2
 fa.diagram(factor.analysis2)
 
 #Adding the Factor Scores to the Main Data Frame
-sapap_final <- cbind.data.frame(sapap3, factor.analysis4$scores)
+sapap_final <- cbind.data.frame(sapap3, factor.analysis2$scores)
 
 #Recoding the SRI_Resis as Factor
 SRI_Resis <- recode(sapap_final$SRI_Resistant, '0' = "Responder", '1' = "SRIResistant")
@@ -31,7 +31,7 @@ sapap_final <- cbind(sapap_final, SRI_Resis)
 
 # Logistic Regression for Treatment Response
 
-log_reg <- glm(sapap_final$SRI_Resis ~sapap_final$Age + sapap_final$AAO + sapap_final_YBOCSTotal + sapap_final$MR1 + sapap_final$MR2 + sapap_final$MR3 + sapap_final$MR4 + sapap_final$MR5  + sapap_final$AA_NonAA, family = binomial(link="logit"))
+log_reg <- glm(sapap_final$SRI_Resis ~sapap_final$Age + sapap_final$AAO + sapap_final$YBOCSTotal + sapap_final$MR1 + sapap_final$MR2 + sapap_final$MR3 + sapap_final$MR4 + sapap_final$MR5  + sapap_final$AA_NonAA, family = binomial(link="logit"))
 
 summary(reg1)
 
