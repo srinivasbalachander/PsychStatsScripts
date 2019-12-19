@@ -1,0 +1,84 @@
+library(psych)
+library(qgraph)
+library(lme4)
+library(lmerTest)
+library(sjstats)
+library(dplyr)
+
+#Input the familiality data, without names from DUMMYSLNO Onwards
+fam <- read.clipboard.tab()
+fam_cl <- fam[ ,8:23]
+fam_cl <- fam_cl[,c(-2,-9)]
+
+#Factor Analysis for Symptom Dimensions
+fa1 <- fa(fam_cl, nfactors = 5, cor = "tetrachoric")
+
+fa.diagram(fa1)
+qgraph.loadings(loadings(fa1), cut=0.3)
+
+fa2 <- fa(fam_cl, nfactors = 5, rotate = "varimax", scores = "regression")
+fa.diagram(fa2)
+qgraph.loadings(loadings(fa2), cut=0.3)
+
+fam_fa <- cbind(fam[,c(1,2,3,4,5,6,7)], fa2[["scores"]])
+
+#Bootstrap Samples for ICC
+dummy <- fam_fa %>% bootstrap(100) 
+
+#Calculating ICCs in each Bootstrapped Sample for each of the Factors
+dummy_MR1 <- dummy %>%
+  mutate(models = lapply(.$strap, function(x) {
+    lmer(MR1 ~ 1 + (1 | DUMMY_FAMNO), data = x)
+  })) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+
+dummy_MR2 <- dummy %>%
+  mutate(models = lapply(.$strap, function(x) {
+    lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x)
+  })) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+
+dummy_MR3 <- dummy %>%
+  mutate(models = lapply(.$strap, function(x) {
+    lmer(MR3 ~ 1 + (1 | DUMMY_FAMNO), data = x)
+  })) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+
+dummy_MR4 <- dummy %>%
+  mutate(models = lapply(.$strap, function(x) {
+    lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x)
+  })) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+
+dummy_MR5 <- dummy %>%
+  mutate(models = lapply(.$strap, function(x) {
+    lmer(MR5 ~ 1 + (1 | DUMMY_FAMNO), data = x)
+  })) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+
+
+# now compute SE and p-values for the bootstrapped ICC
+mean(dummy_MR1$icc_adj) 
+boot_se(dummy_MR1, icc_adj)$std.err 
+boot_p(dummy_MR1, icc_adj)$p.value
+
+mean(dummy_MR2$icc_adj) 
+boot_se(dummy_MR2, icc_adj)$std.err 
+boot_p(dummy_MR2, icc_adj)$p.value
+
+mean(dummy_MR3$icc_adj) 
+boot_se(dummy_MR3, icc_adj)$std.err 
+boot_p(dummy_MR3, icc_adj)$p.value
+
+mean(dummy_MR4$icc_adj) 
+boot_se(dummy_MR4, icc_adj)$std.err 
+boot_p(dummy_MR4, icc_adj)$p.value
+
+mean(dummy_MR5$icc_adj) 
+boot_se(dummy_MR5, icc_adj)$std.err 
+boot_p(dummy_MR5, icc_adj)$p.value
