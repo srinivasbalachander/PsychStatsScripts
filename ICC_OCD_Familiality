@@ -22,63 +22,120 @@ qgraph.loadings(loadings(fa2), cut=0.3)
 
 fam_fa <- cbind(fam[,c(1,2,3,4,5,6,7)], fa2[["scores"]])
 
+rm(fam, fam_cl)
+
 #Bootstrap Samples for ICC
 dummy <- fam_fa %>% bootstrap(100) 
 
 #Calculating ICCs in each Bootstrapped Sample for each of the Factors
-dummy_MR1 <- dummy %>%
-  mutate(models = lapply(.$strap, function(x) {
-    lmer(MR1 ~ 1 + (1 | DUMMY_FAMNO), data = x)
-  })) %>% 
-  mutate(icc = lapply(.$models, performance::icc)) %>%
-  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
-
-dummy_MR2 <- dummy %>%
-  mutate(models = lapply(.$strap, function(x) {
-    lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x)
-  })) %>% 
-  mutate(icc = lapply(.$models, performance::icc)) %>%
-  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
-
-dummy_MR3 <- dummy %>%
-  mutate(models = lapply(.$strap, function(x) {
-    lmer(MR3 ~ 1 + (1 | DUMMY_FAMNO), data = x)
-  })) %>% 
-  mutate(icc = lapply(.$models, performance::icc)) %>%
-  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
-
-dummy_MR4 <- dummy %>%
-  mutate(models = lapply(.$strap, function(x) {
-    lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x)
-  })) %>% 
-  mutate(icc = lapply(.$models, performance::icc)) %>%
-  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
-
-dummy_MR5 <- dummy %>%
-  mutate(models = lapply(.$strap, function(x) {
-    lmer(MR5 ~ 1 + (1 | DUMMY_FAMNO), data = x)
-  })) %>% 
-  mutate(icc = lapply(.$models, performance::icc)) %>%
-  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
-
+dummy_MR1 <- dummy %>% mutate(models = lapply(.$strap, function(x) {
+             lmer(MR1 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+             mutate(icc = lapply(.$models, performance::icc)) %>%
+             mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_MR2 <- dummy %>% mutate(models = lapply(.$strap, function(x) {
+             lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+             mutate(icc = lapply(.$models, performance::icc)) %>%
+             mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_MR3 <- dummy %>% mutate(models = lapply(.$strap, function(x) {
+             lmer(MR3 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+             mutate(icc = lapply(.$models, performance::icc)) %>%
+             mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_MR4 <- dummy %>% mutate(models = lapply(.$strap, function(x) {
+             lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x) })) %>% 
+             mutate(icc = lapply(.$models, performance::icc)) %>%
+             mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_MR5 <- dummy %>% mutate(models = lapply(.$strap, function(x) {
+              lmer(MR5 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+              mutate(icc = lapply(.$models, performance::icc)) %>%
+              mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
 
 # now compute SE and p-values for the bootstrapped ICC
-mean(dummy_MR1$icc_adj) 
-boot_se(dummy_MR1, icc_adj)$std.err 
-boot_p(dummy_MR1, icc_adj)$p.value
+ICC_All <- data.frame(rbind(
+c(mean(dummy_MR1$icc_adj), boot_se(dummy_MR1, icc_adj)$std.err, boot_p(dummy_MR1, icc_adj)$p.value), 
+c(mean(dummy_MR2$icc_adj), boot_se(dummy_MR2, icc_adj)$std.err, boot_p(dummy_MR2, icc_adj)$p.value), 
+c(mean(dummy_MR3$icc_adj), boot_se(dummy_MR3, icc_adj)$std.err, boot_p(dummy_MR3, icc_adj)$p.value),
+c(mean(dummy_MR4$icc_adj), boot_se(dummy_MR4, icc_adj)$std.err, boot_p(dummy_MR4, icc_adj)$p.value),
+c(mean(dummy_MR5$icc_adj), boot_se(dummy_MR5, icc_adj)$std.err, boot_p(dummy_MR5, icc_adj)$p.value)))
+rownames(ICC_All) <- c("MR1", "MR2", "MR3", "MR4", "MR5")
+colnames(ICC_All) <- c("Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
+rm(dummy_MR1, dummy_MR2, dummy_MR3, dummy_MR4, dummy_MR5)
 
-mean(dummy_MR2$icc_adj) 
-boot_se(dummy_MR2, icc_adj)$std.err 
-boot_p(dummy_MR2, icc_adj)$p.value
+#Males Only
 
-mean(dummy_MR3$icc_adj) 
-boot_se(dummy_MR3, icc_adj)$std.err 
-boot_p(dummy_MR3, icc_adj)$p.value
+#Bootstrap Samples for ICC
+dummy_male <- fam_fa[fam_fa$Sex == "male",] %>% bootstrap(100) 
 
-mean(dummy_MR4$icc_adj) 
-boot_se(dummy_MR4, icc_adj)$std.err 
-boot_p(dummy_MR4, icc_adj)$p.value
+#Calculating ICCs in each Bootstrapped Sample for each of the Factors
+dummy_male_MR1 <- dummy_male %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR1 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_male_MR2 <- dummy_male %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_male_MR3 <- dummy_male %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR3 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_male_MR4 <- dummy_male %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x) })) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_male_MR5 <- dummy_male %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR5 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
 
-mean(dummy_MR5$icc_adj) 
-boot_se(dummy_MR5, icc_adj)$std.err 
-boot_p(dummy_MR5, icc_adj)$p.value
+# now compute SE and p-values for the bootstrapped ICC
+ICC_Male <- data.frame(rbind(
+  c(mean(dummy_male_MR1$icc_adj), boot_se(dummy_male_MR1, icc_adj)$std.err, boot_p(dummy_male_MR1, icc_adj)$p.value), 
+  c(mean(dummy_male_MR2$icc_adj), boot_se(dummy_male_MR2, icc_adj)$std.err, boot_p(dummy_male_MR2, icc_adj)$p.value), 
+  c(mean(dummy_male_MR3$icc_adj), boot_se(dummy_male_MR3, icc_adj)$std.err, boot_p(dummy_male_MR3, icc_adj)$p.value),
+  c(mean(dummy_male_MR4$icc_adj), boot_se(dummy_male_MR4, icc_adj)$std.err, boot_p(dummy_male_MR4, icc_adj)$p.value),
+  c(mean(dummy_male_MR5$icc_adj), boot_se(dummy_male_MR5, icc_adj)$std.err, boot_p(dummy_male_MR5, icc_adj)$p.value)))
+rownames(ICC_Male) <- c("MR1", "MR2", "MR3", "MR4", "MR5")
+colnames(ICC_Male) <- c("Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
+rm(dummy_male_MR1, dummy_male_MR2, dummy_male_MR3, dummy_male_MR4, dummy_male_MR5)
+
+#Females Only
+
+#Bootstrap Samples for ICC
+dummy_fem <- fam_fa[fam_fa$Sex == "female",] %>% bootstrap(100) 
+
+#Calculating ICCs in each Bootstrapped Sample for each of the Factors
+dummy_fem_MR1 <- dummy_fem %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR1 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_fem_MR2 <- dummy_fem %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_fem_MR3 <- dummy_fem %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR3 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_fem_MR4 <- dummy_fem %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR2 ~ 1 + (1 | DUMMY_FAMNO), data = x) })) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+dummy_fem_MR5 <- dummy_fem %>% mutate(models = lapply(.$strap, function(x) {
+  lmer(MR5 ~ 1 + (1 | DUMMY_FAMNO), data = x)})) %>% 
+  mutate(icc = lapply(.$models, performance::icc)) %>%
+  mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
+
+# now compute SE and p-values for the bootstrapped ICC
+ICC_Female <- data.frame(rbind(
+  c(mean(dummy_fem_MR1$icc_adj), boot_se(dummy_fem_MR1, icc_adj)$std.err, boot_p(dummy_fem_MR1, icc_adj)$p.value), 
+  c(mean(dummy_fem_MR2$icc_adj), boot_se(dummy_fem_MR2, icc_adj)$std.err, boot_p(dummy_fem_MR2, icc_adj)$p.value), 
+  c(mean(dummy_fem_MR3$icc_adj), boot_se(dummy_fem_MR3, icc_adj)$std.err, boot_p(dummy_fem_MR3, icc_adj)$p.value),
+  c(mean(dummy_fem_MR4$icc_adj), boot_se(dummy_fem_MR4, icc_adj)$std.err, boot_p(dummy_fem_MR4, icc_adj)$p.value),
+  c(mean(dummy_fem_MR5$icc_adj), boot_se(dummy_fem_MR5, icc_adj)$std.err, boot_p(dummy_fem_MR5, icc_adj)$p.value)))
+rownames(ICC_Female) <- c("MR1", "MR2", "MR3", "MR4", "MR5")
+colnames(ICC_Female) <- c("Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
+rm(dummy_fem_MR1, dummy_fem_MR2, dummy_fem_MR3, dummy_fem_MR4, dummy_fem_MR5)
+
+ICC_All
+ICC_Male
+ICC_Female
