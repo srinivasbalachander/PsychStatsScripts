@@ -4,6 +4,7 @@ library(lme4)
 library(lmerTest)
 library(sjstats)
 library(dplyr)
+library(ggplot2)
 
 #Input the familiality data, without names from DUMMYSLNO Onwards
 fam <- read.clipboard.tab()
@@ -50,14 +51,15 @@ dummy_MR5 <- dummy %>% mutate(models = lapply(.$strap, function(x) {
               mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
 
 # now compute SE and p-values for the bootstrapped ICC
-ICC_All <- data.frame(rbind(
+ICC_All <- as.data.frame(rbind(
 c(mean(dummy_MR1$icc_adj), boot_se(dummy_MR1, icc_adj)$std.err, boot_p(dummy_MR1, icc_adj)$p.value), 
 c(mean(dummy_MR2$icc_adj), boot_se(dummy_MR2, icc_adj)$std.err, boot_p(dummy_MR2, icc_adj)$p.value), 
 c(mean(dummy_MR3$icc_adj), boot_se(dummy_MR3, icc_adj)$std.err, boot_p(dummy_MR3, icc_adj)$p.value),
 c(mean(dummy_MR4$icc_adj), boot_se(dummy_MR4, icc_adj)$std.err, boot_p(dummy_MR4, icc_adj)$p.value),
 c(mean(dummy_MR5$icc_adj), boot_se(dummy_MR5, icc_adj)$std.err, boot_p(dummy_MR5, icc_adj)$p.value)))
-rownames(ICC_All) <- c("MR1", "MR2", "MR3", "MR4", "MR5")
-colnames(ICC_All) <- c("Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
+ICC_All <- cbind(c("All","All","All","All","All"),c("MR1", "MR2", "MR3", "MR4", "MR5"), ICC_All)
+colnames(ICC_All) <- c("Set","Factor","Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
+
 rm(dummy_MR1, dummy_MR2, dummy_MR3, dummy_MR4, dummy_MR5)
 
 #Males Only
@@ -88,14 +90,14 @@ dummy_male_MR5 <- dummy_male %>% mutate(models = lapply(.$strap, function(x) {
   mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
 
 # now compute SE and p-values for the bootstrapped ICC
-ICC_Male <- data.frame(rbind(
+ICC_Male <- as.data.frame(rbind(
   c(mean(dummy_male_MR1$icc_adj), boot_se(dummy_male_MR1, icc_adj)$std.err, boot_p(dummy_male_MR1, icc_adj)$p.value), 
   c(mean(dummy_male_MR2$icc_adj), boot_se(dummy_male_MR2, icc_adj)$std.err, boot_p(dummy_male_MR2, icc_adj)$p.value), 
   c(mean(dummy_male_MR3$icc_adj), boot_se(dummy_male_MR3, icc_adj)$std.err, boot_p(dummy_male_MR3, icc_adj)$p.value),
   c(mean(dummy_male_MR4$icc_adj), boot_se(dummy_male_MR4, icc_adj)$std.err, boot_p(dummy_male_MR4, icc_adj)$p.value),
   c(mean(dummy_male_MR5$icc_adj), boot_se(dummy_male_MR5, icc_adj)$std.err, boot_p(dummy_male_MR5, icc_adj)$p.value)))
-rownames(ICC_Male) <- c("MR1", "MR2", "MR3", "MR4", "MR5")
-colnames(ICC_Male) <- c("Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
+ICC_Male <- cbind(c("Males","Males","Males","Males","Males"),c("MR1", "MR2", "MR3", "MR4", "MR5"), ICC_Male)
+colnames(ICC_Male) <- c("Set", "Factor","Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
 rm(dummy_male_MR1, dummy_male_MR2, dummy_male_MR3, dummy_male_MR4, dummy_male_MR5)
 
 #Females Only
@@ -126,16 +128,27 @@ dummy_fem_MR5 <- dummy_fem %>% mutate(models = lapply(.$strap, function(x) {
   mutate(icc_adj = do.call(rbind, lapply(.$icc, function(i){ i$ICC_adjusted })))
 
 # now compute SE and p-values for the bootstrapped ICC
-ICC_Female <- data.frame(rbind(
+ICC_Female <- as.data.frame(rbind(
   c(mean(dummy_fem_MR1$icc_adj), boot_se(dummy_fem_MR1, icc_adj)$std.err, boot_p(dummy_fem_MR1, icc_adj)$p.value), 
   c(mean(dummy_fem_MR2$icc_adj), boot_se(dummy_fem_MR2, icc_adj)$std.err, boot_p(dummy_fem_MR2, icc_adj)$p.value), 
   c(mean(dummy_fem_MR3$icc_adj), boot_se(dummy_fem_MR3, icc_adj)$std.err, boot_p(dummy_fem_MR3, icc_adj)$p.value),
   c(mean(dummy_fem_MR4$icc_adj), boot_se(dummy_fem_MR4, icc_adj)$std.err, boot_p(dummy_fem_MR4, icc_adj)$p.value),
   c(mean(dummy_fem_MR5$icc_adj), boot_se(dummy_fem_MR5, icc_adj)$std.err, boot_p(dummy_fem_MR5, icc_adj)$p.value)))
-rownames(ICC_Female) <- c("MR1", "MR2", "MR3", "MR4", "MR5")
-colnames(ICC_Female) <- c("Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
+ICC_Female <- cbind(c("Females","Females","Females","Females","Females"),c("MR1", "MR2", "MR3", "MR4", "MR5"), ICC_Female)
+colnames(ICC_Female) <- c("Set", "Factor","Adj_ICC_Mean", "Adj_ICC_SE", "P-Value")
 rm(dummy_fem_MR1, dummy_fem_MR2, dummy_fem_MR3, dummy_fem_MR4, dummy_fem_MR5)
 
-ICC_All
-ICC_Male
-ICC_Female
+ICC_Final <- rbind(ICC_All, ICC_Male, ICC_Female)
+ICC_Final
+
+rm(ICC_All, ICC_Male, ICC_Female, dummy, dummy_male, dummy_fem)
+
+pd <- position_dodge(0.2)
+
+ggplot(data=ICC_Final, aes(x=Factor, y=Adj_ICC_Mean, col=Set, group=Set)) + geom_point(position=pd, size=2) + 
+  geom_errorbar(aes(ymin=Adj_ICC_Mean-Adj_ICC_SE, ymax=Adj_ICC_Mean+Adj_ICC_SE), width=0.1, position=pd) + 
+  geom_line(position=pd) + 
+  scale_x_discrete(labels = c("Symmetry/Arranging/Repeating", "Contamination/Washing", "Hoarding/Collecting", "Sex/Agg/Religious", "Doubts/Checking"), name="Symptom Dimension") + 
+  scale_y_continuous(name="Adjusted Intraclass Correlation Coefficent")
+
+
