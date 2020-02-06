@@ -1,0 +1,110 @@
+library(googlesheets4)
+library(dplyr)
+
+# Allow linking with Google API using the csap.adbs@gmail.com
+sheets_auth()
+
+# Input all the sheets using read_sheet("URL of FIle", sheet = sheet_name_or_number)
+PBMC <- read_sheet("https://docs.google.com/spreadsheets/d/1VdCihxlgBvHn6Pz8nVOiv6J3TmJqbLhAr4vnV06M_mQ/edit#gid=1758808820", sheet=1) %>% select(1,2,3,4,5,14,15,16) %>% rename(ADBS_ID_Lab=ADBS_ID, D_Number_Lab=D_Number, Fam_No_Lab=Family_Number, PBMC_Count=Total_count, PBMC_Vials=Number_of_Cryovials, Remarks_PBMC=Remarks)
+DNA <- read_sheet("https://docs.google.com/spreadsheets/d/1N2S1xZTQI_gShGnWJlBp37mqW947NT5DiwrD1t3S7QI/edit#gid=0", sheet=7)
+LCL_Jupiter <- read_sheet("https://docs.google.com/spreadsheets/d/1OqUKdd3OyJzbHR8B9Xooqkz-tJb2CpVfmp8Wf0bpMIE/edit#gid=435426509", sheet=9)
+LCL_Venus <- read_sheet("https://docs.google.com/spreadsheets/d/18TDqMWJApfZ1DCOdUPJj3uOphVWuEiOz31LVut8CLzQ/edit#gid=1472936190", sheet=5)
+Mycoplasma <- read_sheet("https://docs.google.com/spreadsheets/d/1aBIaAD_gILOYUiakmPsoWfvLtSy4QG1iU7qLanrztIs/edit#gid=392974868", sheet=1)
+GenePrint <- read_sheet("https://docs.google.com/spreadsheets/d/1PUqMc7PD3xSzZsHnv6og-zhDcZHlS5C3Cevmi1Rvyak/edit#gid=227636781", sheet=1)
+
+#----These sheets dont exist!! Three useless lines of code
+Karyotype <- read_sheet("",sheet=1)
+Exome <- read_sheet("", sheet=1)
+iPSC <- read_sheet("", sheet=1)
+
+#Identify Duplicate Entries in the Lab Sheets
+unique(PBMC$Assessment_ID[duplicated(PBMC$Assessment_ID)])
+unique(PBMC$Sample_No[duplicated(PBMC$Sample_No)])
+unique(GenePrint$Sample_No[duplicated(GenePrint$Sample_No)])
+unique(LCL_Venus$Sample_No[duplicated(LCL_Venus$Sample_No)])
+unique(DNA$Sample_No[duplicated(DNA$Sample_No)])
+
+#Remove Duplicates in the PBMC Sheet, both duplicate Sample No & Assessment IDs
+PBMC <- PBMC[!duplicated(PBMC$Sample_No),]
+
+# Merge all Lab Data
+x1 <- merge(PBMC, LCL_Venus, by = "Sample_No", all.x=TRUE )
+x2 <- merge(x1, GenePrint, by = "Sample_No", all.x=TRUE)
+x3 <- merge(x2, DNA, by= "Sample_No", all.x = TRUE)
+x3 <- x3[!duplicated(x3$Sample_No),]
+
+# Merging the Lab Data -  Check these As the Column Numbers can Change, based on their Use
+All_Lab <- x3[,c(1,2,3,4,5,6,7,8,10,11,12,13,14,15,17,18,19,20,21,23,24)]
+
+rm(x1,x2,x3,PBMC, DNA, GenePrint,LCL_Jupiter,LCL_Venus,Mycoplasma)
+
+#Inputting the Data from the Endophenotype Labs
+
+MRI <- read_sheet("https://docs.google.com/spreadsheets/d/1jeOFEXeh2mo0sJeRwdoFvQhRlcL71yz-O-dsICyCiAs/edit#gid=0", sheet=1) %>% select(Assessment_ID, MRI_Date)
+Neuropsych <- read_sheet("https://docs.google.com/spreadsheets/d/1pAyk4trBl3b10IJC1Ds8T91sKGQHCgBhJ_JrcHkWzwc/edit#gid=935400297", sheet=1) %>% select(Assessment_ID, Date_Neurocog)
+EEG <- read_sheet("https://docs.google.com/spreadsheets/d/1V9vKutF05VbD7PbSzYckvDXf4Cp58NANS7WJ9foKOsk/edit#gid=0", sheet=1) %>% select(Assessment_ID, Date_EEG)
+EMT <- read_sheet("https://docs.google.com/spreadsheets/d/1X-UDATnQ_Pr42OWC1O0NFnuF4pCmyoY6KQP1lr0LvUM/edit#gid=513823159", sheet=1) %>% select(Assessment_ID, Date_Eyetrack)
+fNIRS <- read_sheet("https://docs.google.com/spreadsheets/d/1ttWWsRL5cQtFq-2uliRx0ef8C65ChMZ4QRhDlvGy8_o/edit#gid=972863133", sheet=1) %>% select(Assessment_ID, Date_fNIRS)
+
+Neuropsych$Assessment_ID <- unlist(Neuropsych$Assessment_ID)
+
+y1 <- merge(MRI, Neuropsych, by="Assessment_ID", all = TRUE)
+y2 <- merge(y1, EEG, by="Assessment_ID", all=TRUE)
+y3 <- merge(y2, EMT, by="Assessment_ID", all=TRUE)
+
+All_Endoph <- merge(y3, fNIRS, by="Assessment_ID", all=TRUE)
+
+rm(y1,y2,y3,MRI,Neuropsych,EEG,EMT,fNIRS)
+
+#Clinical Data - See if this is getting updated first! Try to pull backend data of the Sociodemographic Sheet 
+Sociodem <- read_sheet("https://docs.google.com/spreadsheets/d/1tEeDeprqA3BdnsKCk78s0WR_uJDHtyYBAOqFaWTpABE/edit#gid=984083338", sheet=2, range="B:AP") %>% select(ADBS_ID, Assessment_ID, D_Number, Family_Number, Pt_Gender, Pt_DOB, Psy1, Psy2, Psy3, DateOfAssessment)
+
+
+#Inputting the Audit Sheets from the Clinic End - These Audit sheets arent the best way to go this, however!
+Schiz_Brief <- read_sheet("https://docs.google.com/spreadsheets/d/1jhEtY2EjJ-5yHqLAentSm1UbjvgP2PGr-QED4U4bV-Q/edit#gid=0", sheet=1) %>% select(ADBS_ID, Assessment_ID,Name,Index_cohort, Date_of_Brief_Assessment)
+Schiz_Deep <- read_sheet("https://docs.google.com/spreadsheets/d/1jhEtY2EjJ-5yHqLAentSm1UbjvgP2PGr-QED4U4bV-Q/edit#gid=0", sheet=2) %>% select(ADBS_ID, Assessment_ID, Age, Gender, Primary_Diagnosis, Date_of_Deep_Assessment, Neuropsych_Status, MRI_Status, EEG_Status, FNIRS_Status, Eye_tracking_Status)
+Bipolar_Brief <- read_sheet("https://docs.google.com/spreadsheets/d/1hlBd1_FYmBG1jb4mEycgHd0DrFTjAdMKzzJ70rBtSK8/edit#gid=477551608", sheet=1)  %>% select(ADBS_ID, Assessment_ID,Name,Index_cohort, Date_of_Brief_Assessment)
+Bipolar_Deep <- read_sheet("https://docs.google.com/spreadsheets/d/1hlBd1_FYmBG1jb4mEycgHd0DrFTjAdMKzzJ70rBtSK8/edit#gid=477551608", sheet=2) %>% select(ADBS_ID, Assessment_ID, Age, Gender, Primary_Diagnosis, Date_of_Deep_Assessment, Neuropsych_Status, MRI_Status, EEG_Status, FNIRS_Status, Eye_tracking_Status)
+OCD_Brief <- read_sheet("https://docs.google.com/spreadsheets/d/1NOrbNKIFcRpJ-hEc37PRaQiqAU2WsbMlgTrCANiPUa4/edit#gid=0", sheet=1)  %>% select(ADBS_ID, Assessment_ID,Name,Index_cohort, Date_of_Brief_Assessment)
+OCD_Deep <- read_sheet("https://docs.google.com/spreadsheets/d/1NOrbNKIFcRpJ-hEc37PRaQiqAU2WsbMlgTrCANiPUa4/edit#gid=0", sheet=2) %>% select(ADBS_ID, Assessment_ID, Age, Gender, Primary_Diagnosis, Date_of_Deep_Assessment, Neuropsych_Status, MRI_Status, EEG_Status, FNIRS_Status, Eye_tracking_Status)
+Addict_Brief <- read_sheet("https://docs.google.com/spreadsheets/d/1pDDglqEFCwIJAvY8jbheVg6_z0oRraJ40bbDmPIOymY/edit#gid=0", sheet=1)  %>% select(ADBS_ID, Assessment_ID,Name,Index_cohort, Date_of_Brief_Assessment)
+Addict_Deep <- read_sheet("https://docs.google.com/spreadsheets/d/1pDDglqEFCwIJAvY8jbheVg6_z0oRraJ40bbDmPIOymY/edit#gid=0", sheet=2) %>% select(ADBS_ID, Assessment_ID, Age, Gender, Primary_Diagnosis, Date_of_Deep_Assessment, Neuropsych_Status, MRI_Status, EEG_Status, FNIRS_Status, Eye_tracking_Status)
+Demen_Brief <- read_sheet("https://docs.google.com/spreadsheets/d/1v9omyeD7-IVg3zlPoqWDdCmKQDCwPFulCakUxX8KIN4/edit#gid=0", sheet=1)  %>% select(ADBS_ID, Assessment_ID,Name,Index_cohort, Date_of_Brief_Assessment)
+Demen_Deep <- read_sheet("https://docs.google.com/spreadsheets/d/1v9omyeD7-IVg3zlPoqWDdCmKQDCwPFulCakUxX8KIN4/edit#gid=0", sheet=2) %>% select(ADBS_ID, Assessment_ID, Age, Gender, Primary_Diagnosis, Date_of_Deep_Assessment, Neuropsych_Status, MRI_Status, EEG_Status, FNIRS_Status, Eye_tracking_Status)
+
+
+#Merge All Audit Sheets Into One Sheet
+#This script removes the duplicates from the sheet, but ensure that the audit sheets do NOT contain duplicate 
+
+All_Briefs <- rbind(Schiz_Brief, Bipolar_Brief, OCD_Brief, Addict_Brief, Demen_Brief) 
+All_Briefs$Assessment_ID <- unlist(All_Briefs$Assessment_ID)
+unique(All_Briefs$Assessment_ID[duplicated(All_Briefs$Assessment_ID)])
+All_Briefs <- All_Briefs[!duplicated(All_Briefs$Assessment_ID),]
+
+All_Deeps <- rbind(Schiz_Deep, Bipolar_Deep, OCD_Deep, Addict_Deep, Demen_Deep)
+All_Deeps$Assessment_ID <- unlist(All_Deeps$Assessment_ID)
+unique(All_Deeps$Assessment_ID[duplicated(All_Deeps$Assessment_ID)])
+All_Deeps <- All_Deeps[!duplicated(All_Deeps$Assessment_ID),]
+
+All_Clinical <- merge(All_Briefs, All_Deeps[,-1], by="Assessment_ID", all=TRUE)
+
+#Removing the Unnecessary Files
+rm(Addict_Brief, Addict_Deep, Bipolar_Brief, Bipolar_Deep, Demen_Brief, Demen_Deep, OCD_Brief, OCD_Deep, Schiz_Brief, Schiz_Deep, All_Briefs, All_Deeps)
+
+
+#Merging the Endoph, Lab, and Clinical Databases
+
+z1 <- merge(Sociodem, All_Lab, by="Assessment_ID", all=TRUE)
+z2 <- merge(z1, All_Endoph, by="Assessment_ID", all=TRUE)
+
+#The Final Sheet, Note that these numbers can change
+ADBS_Audit <- z2 %>% select(1,11,2,12,3,13,4,5,6,7,8,9,10,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35)
+
+#Check for Duplicate entries in the final sheet!
+ADBS_Audit$Assessment_ID[duplicated(ADBS_Audit$Assessment_ID)]
+unique(ADBS_Audit$Assessment_ID[duplicated(ADBS_Audit$Assessment_ID)])
+
+#Write as a CSV File
+
+setwd("/Users/balachandersrinivas/Desktop")
+write.csv(ADBS_Audit, "ADBS_Audit.csv", sep=";", row.names=FALSE)
