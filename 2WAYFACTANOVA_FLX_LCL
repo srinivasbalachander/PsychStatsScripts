@@ -1,0 +1,45 @@
+library(tidyverse)
+library(nlme)
+
+setwd("~/Desktop")
+
+FLX <- read.csv("FLX_RESP.csv", stringsAsFactors = TRUE)
+FLX$Group <- factor(FLX$Group, levels = c("Case", "Control"))
+FLX$Treatment_Status <- factor(FLX$Treatment_Status, levels = c("Untreated", "Treated"))
+
+lme_G0G1 <- lme(G0_G1 ~ Treatment_Status * Group, random=~1|Sample_No, data=FLX)
+aov_G0G1 <- anova(lme_G0G1)
+lme_SPhase <- lme(S_Phase ~ Treatment_Status * Group, random=~1|Sample_No, data=FLX)
+aov_SPhase <- anova(lme_SPhase)
+lme_G2M <- lme(G2_M ~ Treatment_Status * Group, random=~1|Sample_No, data=FLX)
+aov_G2M <- anova(lme_G2M)
+
+anova_table <- data.frame((cbind(c("Intercept", "Treatment with Fluoxetine (0=Untreated, 1=Treated", "Group (0=Control; 1=Case)", "Treatment x Group"), aov_G0G1$`F-value`, aov_G0G1$`p-value`, aov_SPhase$`F-value`, aov_SPhase$`p-value`, aov_G2M$`F-value`, aov_G2M$`p-value`)))
+
+colnames(anova_table) <- c("Parameter", "F_G0G1", "p_G0G1", "F_S", "p_S", "F_G2M", "p_G2M")
+
+anova_table
+
+with(FLX, interaction.plot(Treatment_Status, Group, G0_G1, col=c("red", "blue"), main="Interaction Plot", xlab="Treatment_Status", ylab="%Cells in G0/G1"))
+with(FLX, interaction.plot(Treatment_Status, Group, S_Phase, col=c("red", "blue"), main="Interaction Plot", xlab="Treatment_Status", ylab="%Cells in S_Phase"))
+with(FLX, interaction.plot(Treatment_Status, Group, G2_M, col=c("red", "blue"), main="Interaction Plot", xlab="Treatment_Status", ylab="%Cells in G2/M"))
+
+se <- function(x) sqrt(var(x)/length(x))
+
+FLX %>% 
+  group_by(Treatment_Status, Group) %>% 
+  summarise(mean_G0G1= mean(G0_G1), SE_G0G1 = se(G0_G1), 
+            mean_S = mean(S_Phase), SE_S = se(S_Phase),
+            mean_G2M = mean(G2_M), SE_G2M = se(G2_M)) %>%
+ reshape(varying = as.matrix(rbind(c(3,5,7), c(4,6,8))), v.names=c("Mean_Cells", "SE_Cells"), timevar = "Phase", times=c("G0_G1", "S", "G2_M"), direction = "long") %>% select(-6) -> FLX2
+
+FLX2$Phase <- factor(FLX2$Phase, levels = c("G0_G1","S","G2_M")) 
+
+ggplot(data=FLX2, aes(x= Treatment_Status, y=Mean_Cells, group=Group, color = Group)) + 
+  geom_line(aes=FLX2$Group, position=position_dodge(width=0.5), linetype=3) +  
+  geom_col(position=position_dodge(width=0.5), width = 0.08, size=2) +
+  geom_errorbar(aes(ymin = Mean_Cells - SE_Cells, ymax = Mean_Cells + SE_Cells), width = 0.2, position=position_dodge(width=0.5)) +
+  facet_wrap(~Phase) + 
+  scale_x_discrete(limits=c("Untreated", "Treated"),name="Treatment with Fluoxetine") +
+  scale_y_continuous(name="% Cells")
+
