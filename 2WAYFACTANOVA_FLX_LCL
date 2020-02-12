@@ -20,6 +20,8 @@ colnames(anova_table) <- c("Parameter", "F_G0G1", "p_G0G1", "F_S", "p_S", "F_G2M
 
 anova_table
 
+write.csv("anova_table", "ANOVA_FLX_LCL.csv", row.names = FALSE)
+
 with(FLX, interaction.plot(Treatment_Status, Group, G0_G1, col=c("red", "blue"), main="Interaction Plot", xlab="Treatment_Status", ylab="%Cells in G0/G1"))
 with(FLX, interaction.plot(Treatment_Status, Group, S_Phase, col=c("red", "blue"), main="Interaction Plot", xlab="Treatment_Status", ylab="%Cells in S_Phase"))
 with(FLX, interaction.plot(Treatment_Status, Group, G2_M, col=c("red", "blue"), main="Interaction Plot", xlab="Treatment_Status", ylab="%Cells in G2/M"))
@@ -42,4 +44,5 @@ ggplot(data=FLX2, aes(x= Treatment_Status, y=Mean_Cells, group=Group, color = Gr
   facet_wrap(~Phase) + 
   scale_x_discrete(limits=c("Untreated", "Treated"),name="Treatment with Fluoxetine") +
   scale_y_continuous(name="% Cells")
+
 
