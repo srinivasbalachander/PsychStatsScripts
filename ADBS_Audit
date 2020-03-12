@@ -6,19 +6,13 @@ sheets_auth()
 
 # Input all the sheets using read_sheet("URL of FIle", sheet = sheet_name_or_number)
 PBMC_IDs <- read_sheet("https://docs.google.com/spreadsheets/d/1VdCihxlgBvHn6Pz8nVOiv6J3TmJqbLhAr4vnV06M_mQ/edit#gid=1758808820", sheet=1, range = "A:E", col_types = "ccccc")%>% rename(ADBS_ID_Lab=ADBS_ID, D_Number_Lab=D_Number, Fam_No_Lab=Family_Number)
-DNA <- read_sheet("https://docs.google.com/spreadsheets/d/1N2S1xZTQI_gShGnWJlBp37mqW947NT5DiwrD1t3S7QI/edit#gid=0", sheet=7, range = "A:F", col_types = "cccccc") %>% select(1,3,6)
+DNA <- read_sheet("https://docs.google.com/spreadsheets/d/1N2S1xZTQI_gShGnWJlBp37mqW947NT5DiwrD1t3S7QI/edit#gid=0", sheet=8, range = "A:F", col_types = "cccccc") %>% select(1,3,6)
 PBMC_Jupiter <- read_sheet("https://docs.google.com/spreadsheets/d/1OqUKdd3OyJzbHR8B9Xooqkz-tJb2CpVfmp8Wf0bpMIE/edit#gid=435426509", sheet=9, range = "A:C", col_types = "ccc") %>% select(1,3)
 LCL_Venus <- read_sheet("https://docs.google.com/spreadsheets/d/18TDqMWJApfZ1DCOdUPJj3uOphVWuEiOz31LVut8CLzQ/edit#gid=1472936190", sheet=5, range = "A:F", col_types = "cccccc") %>% select(1,6)
 Mycoplasma <- read_sheet("https://docs.google.com/spreadsheets/d/1aBIaAD_gILOYUiakmPsoWfvLtSy4QG1iU7qLanrztIs/edit#gid=392974868", sheet=1)
 GenePrint_Blood <- read_sheet("https://docs.google.com/spreadsheets/d/1PUqMc7PD3xSzZsHnv6og-zhDcZHlS5C3Cevmi1Rvyak/edit#gid=244662110", sheet=3, range = "A:D", col_types = "cccc") %>% select(1,4)
 GenePrint_LCL <- read_sheet("https://docs.google.com/spreadsheets/d/1PUqMc7PD3xSzZsHnv6og-zhDcZHlS5C3Cevmi1Rvyak/edit#gid=244662110", sheet=4, range = "A:D", col_types = "cccc") %>% select(1,4)
 Karyotype <- read_sheet("https://docs.google.com/spreadsheets/d/1Q_88EBR1eVCG4jDfHHV1B8ku59GuEEo0Qr-IyMAG-mk/edit#gid=0", sheet=1, range="A:H", col_types = "cccccccc") %>% select(1,8)
-
-PBMC_IDs <- PBMC_IDs[!(is.na(PBMC_IDs$Sample_No)),]
-
-#These sheets dont exist
-Exome <- read_sheet("", sheet=1)
-iPSC <- read_sheet("", sheet=1)
 
 #Identify Duplicate Entries in the Lab Sheets
 PBMC_IDs$Assessment_ID[duplicated(PBMC_IDs$Assessment_ID)]
@@ -28,8 +22,9 @@ GenePrint_LCL$Sample_No[duplicated(GenePrint_LCL$Sample_No)]
 LCL_Venus$Sample_No[duplicated(LCL_Venus$Sample_No)]
 DNA$Sample_No[duplicated(DNA$Sample_No)]
 
-#Remove Duplicates in the PBMC Sheet, both duplicate Sample No & Assessment IDs
-PBMC <- PBMC_IDs[!duplicated(PBMC_IDs$Sample_No),]
+#Remove Duplicates in the PBMC Sheet, both duplicate Sample No & those without Sample No
+PBMC_IDs <- PBMC_IDs[!(is.na(PBMC_IDs$Sample_No)),]
+PBMC_IDs <- PBMC_IDs[!duplicated(PBMC_IDs$Sample_No),]
 
 # Merge all Lab Data
 x1 <- merge(PBMC_IDs, PBMC_Jupiter, by = "Sample_No", all.x=TRUE )
@@ -52,10 +47,11 @@ EEG <- read_sheet("https://docs.google.com/spreadsheets/d/1V9vKutF05VbD7PbSzYckv
 EMT <- read_sheet("https://docs.google.com/spreadsheets/d/1X-UDATnQ_Pr42OWC1O0NFnuF4pCmyoY6KQP1lr0LvUM/edit#gid=513823159", sheet=1) %>% select(Assessment_ID, Date_Eyetrack)
 fNIRS <- read_sheet("https://docs.google.com/spreadsheets/d/1ttWWsRL5cQtFq-2uliRx0ef8C65ChMZ4QRhDlvGy8_o/edit#gid=972863133", sheet=1) %>% select(Assessment_ID, Date_fNIRS)
 
-# Sociodemographic Sheet needs to be updated from time to time
-Sociodem <- read_sheet("https://docs.google.com/spreadsheets/d/1tEeDeprqA3BdnsKCk78s0WR_uJDHtyYBAOqFaWTpABE/edit#gid=984083338", sheet=1, range="B:AR", col_types = "ccccccccccccccccccccccccccccccccccccccccccc" ) %>% select(ADBS_ID, Assessment_ID, D_Number, Family_Number, Pt_Gender, Pt_DOB, Pt_Age, Psy1, Psy2, Psy3, Psy4, Psy5, DateOfAssessment)
+# Main assessment & Sociodemographic Google Sheets need to be updated from time to time
+mainassessment <- read_sheet("https://docs.google.com/spreadsheets/d/1Zfs5EOGklIt57r79B-x3mukINDzLWLg1C5g-5CYCx_I/edit#gid=0", sheet=1, range="C:G", col_types="ccccc") %>% select(Assessment_ID, Date_Brief_Assessment, Date_Deep_Assessment)
+Sociodem <- read_sheet("https://docs.google.com/spreadsheets/d/1tEeDeprqA3BdnsKCk78s0WR_uJDHtyYBAOqFaWTpABE/edit#gid=984083338", sheet=1, range="B:AR", col_types = "ccccccccccccccccccccccccccccccccccccccccccc" ) %>% select(ADBS_ID, Assessment_ID, D_Number, Family_Number, Pt_Gender, Pt_DOB, Pt_Age, Psy1, Psy2, Psy3, Psy4, Psy5)
 
-# Duplicates  in the Sociodemograpic and Endophenotype sheets
+# Identify Duplicates in the Sociodemograpic and Endophenotype sheets
 unique(Sociodem$Assessment_ID[duplicated(Sociodem$Assessment_ID)])
 unique(MRI$Assessment_ID[duplicated(MRI$Assessment_ID)])
 unique(Neuropsych$Assessment_ID[duplicated(Neuropsych$Assessment_ID)])
@@ -65,18 +61,17 @@ unique(fNIRS$Assessment_ID[duplicated(fNIRS$Assessment_ID)])
 
 
 #Merging the MRI, EEG and Eno
-y0 <- merge(Sociodem, MRI, by="Assessment_ID", all.x = TRUE)
-y1 <- merge(y0, Neuropsych, by="Assessment_ID", all = TRUE)
-y2 <- merge(y1, EEG, by="Assessment_ID", all=TRUE)
-y3 <- merge(y2, EMT, by="Assessment_ID", all=TRUE)
-All_Clinical <- merge(y3, fNIRS, by="Assessment_ID", all=TRUE)
-All_Clinical <- All_Clinical[!(is.na(All_Endoph$Assessment_ID)),]
+y0 <- merge(Sociodem, mainassessment, by="Assessment_ID", all.x = TRUE)
+y1 <- merge(y0, MRI, by="Assessment_ID", all.x = TRUE)
+y2 <- merge(y1, Neuropsych, by="Assessment_ID", all = TRUE)
+y3 <- merge(y2, EEG, by="Assessment_ID", all=TRUE)
+y4 <- merge(y3, EMT, by="Assessment_ID", all=TRUE)
+All_Clinical <- merge(y4, fNIRS, by="Assessment_ID", all=TRUE)
+
+All_Clinical <- All_Clinical[!(is.na(All_Clinical$Assessment_ID)),]
 All_Clinical <- All_Clinical[!duplicated(All_Clinical$Assessment_ID),]
-rm(y0,y1,y2,y3,MRI,Neuropsych,EEG,EMT,fNIRS)
+rm(y0,y1,y2,y3,y4,MRI,Neuropsych,EEG,EMT,fNIRS, mainassessment)
 
-
-#Add Main_assessment Table to get whether brief & deep done or not
-#----------To be done----------------#
 
 #Merging the Endoph, Lab, and Clinical Databases
 z1 <- merge(All_Lab, All_Clinical, by="Assessment_ID", all = TRUE)
@@ -95,7 +90,8 @@ ADBS_Audit <- z1 %>% select(Sample_No,
                       Psy1,                  
                       Psy2,                 
                       Psy3,             
-                      DateOfAssessment,                   
+                      Date_Brief_Assessment,
+                      Date_Deep_Assessment,
                       PBMNC_vials ,          
                       LCL_VIALS ,           
                       Blood_DNA_Availability,
